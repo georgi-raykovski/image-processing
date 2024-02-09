@@ -233,3 +233,196 @@ int main(int argc, char *argv[])
 
     // return app.exec();
 }
+
+// int compareClassifications(const std::vector<std::vector<double>> &originalCoefficients, const std::vector<std::vector<double>> &cutoffCoefficients, size_t numClasses)
+// {
+//     // Initialize classifiers
+//     NaiveBayesClassifier originalClassifier;
+//     NaiveBayesClassifier cutoffClassifier;
+
+//     // Dummy class labels
+//     std::vector<int> classes;
+//     for (size_t i = 0; i < numClasses; ++i)
+//     {
+//         classes.push_back(i % 2); // Alternate between class 0 and class 1
+//     }
+
+//     // Train classifiers
+//     originalClassifier.train(originalCoefficients, classes);
+//     cutoffClassifier.train(cutoffCoefficients, classes);
+
+//     // Predict class of each contour using original coefficients and cutoff coefficients
+//     size_t totalContours = originalCoefficients.size();
+//     size_t correctlyClassified = 0;
+
+//     for (size_t i = 0; i < totalContours; ++i)
+//     {
+//         int originalPredictedClass = originalClassifier.predict(originalCoefficients[i]);
+//         int cutoffPredictedClass = cutoffClassifier.predict(cutoffCoefficients[i]);
+
+//         // Compare predictions and count correct classifications
+//         if (originalPredictedClass == cutoffPredictedClass)
+//         {
+//             ++correctlyClassified;
+//         }
+//     }
+
+//     return correctlyClassified;
+// }
+
+// int main(int argc, char *argv[])
+// {
+//     QApplication app(argc, argv);
+
+//     std::vector<std::vector<int>> mnistImages = readMNIST("train-images-idx3-ubyte");
+//     double cutoffPercentage = 0.95;
+//     std::vector<double> cutoffPercentages = {0.05, 0.1, 0.15, 0.2, 0.25}; // Example range
+
+//     // Apply FFT for all images
+//     int fftSize = 512; // Choose appropriate FFT size
+//     size_t totalPredictions = 0;
+//     size_t totalCorrectPredictions = 0;
+
+//     for (const auto &image : mnistImages)
+//     {
+//         QImage qimage(28, 28, QImage::Format_Grayscale8);
+
+//         for (int i = 0; i < 28; ++i)
+//         {
+//             for (int j = 0; j < 28; ++j)
+//             {
+//                 qimage.setPixel(j, i, image[i * 28 + j]);
+//             }
+//         }
+
+//         std::vector<std::pair<int, int>> contour = extractContour(qimage);
+//         std::vector<std::vector<double>> fftCoefficients = applyFFT(contour, fftSize);
+
+//         std::vector<std::vector<double>> reducedFftCoefficients = cutHighFrequencyCoefficients(fftCoefficients, cutoffPercentage);
+
+//         totalPredictions += fftCoefficients.size();
+//         totalCorrectPredictions += compareClassifications(fftCoefficients, reducedFftCoefficients, 2);
+//     }
+
+//     std::cout << "Total Predictions: " << totalPredictions << std::endl;
+//     std::cout << "Total Correct Predictions: " << totalCorrectPredictions << std::endl;
+//     std::cout << "Accuracy: " << (static_cast<double>(totalCorrectPredictions) / totalPredictions) * 100.0 << "%" << std::endl;
+//     std::cout << "Processing complete." << std::endl;
+//     return 0;
+// }
+
+
+class NaiveBayesClassifier
+// {
+// private:
+//     std::vector<std::vector<double>> classMeans;     // Mean of each coefficient for each class (0-9)
+//     std::vector<std::vector<double>> classVariances; // Variance of each coefficient for each class (0-9)
+//     std::vector<double> classPriors;                 // Prior probability of each class (0-9)
+
+// public:
+//     NaiveBayesClassifier() {}
+
+//     void train(const std::vector<std::vector<std::vector<double>>> &fftCoefficients, const std::vector<int> &labels)
+//     {
+//         const int numClasses = 10;
+//         const int numCoefficients = fftCoefficients[0].size();
+
+//         classMeans.resize(numClasses, std::vector<double>(numCoefficients, 0.0));
+//         classVariances.resize(numClasses, std::vector<double>(numCoefficients, 0.0));
+//         classPriors.resize(numClasses, 0.0);
+
+//         std::vector<int> classCounts(numClasses, 0);
+
+//         // Compute class priors and coefficient statistics
+//         for (size_t i = 0; i < fftCoefficients.size(); ++i)
+//         {
+//             int label = labels[i];
+//             classPriors[label]++;
+//             classCounts[label]++;
+//             for (size_t j = 0; j < fftCoefficients[i].size(); ++j)
+//             {
+//                 for (size_t k = 0; k < fftCoefficients[i][j].size(); ++k)
+//                 {
+//                     classMeans[label][j] += fftCoefficients[i][j][k];
+//                 }
+//             }
+//         }
+
+//         // Normalize class means
+//         for (int i = 0; i < numClasses; ++i)
+//         {
+//             for (int j = 0; j < numCoefficients; ++j)
+//             {
+//                 classMeans[i][j] /= classCounts[i];
+//             }
+//         }
+
+//         // Compute class variances
+//         for (size_t i = 0; i < fftCoefficients.size(); ++i)
+//         {
+//             int label = labels[i];
+//             for (size_t j = 0; j < fftCoefficients[i].size(); ++j)
+//             {
+//                 for (size_t k = 0; k < fftCoefficients[i][j].size(); ++k)
+//                 {
+//                     double diff = fftCoefficients[i][j][k] - classMeans[label][j];
+//                     classVariances[label][j] += diff * diff;
+//                 }
+//             }
+//         }
+
+//         // Normalize class variances
+//         for (int i = 0; i < numClasses; ++i)
+//         {
+//             for (int j = 0; j < numCoefficients; ++j)
+//             {
+//                 classVariances[i][j] /= classCounts[i];
+//             }
+//         }
+
+//         // Normalize class priors
+//         for (int i = 0; i < numClasses; ++i)
+//         {
+//             classPriors[i] /= fftCoefficients.size();
+//         }
+//     }
+
+//     int predict(const std::vector<std::vector<double>> &fftCoefficients)
+//     {
+//         const int numClasses = 10;
+//         const int numCoefficients = fftCoefficients.size();
+//         std::vector<double> probabilities(numClasses, 0.0);
+
+//         for (int c = 0; c < numClasses; ++c)
+//         {
+//             probabilities[c] = std::log(classPriors[c]);
+//             for (int i = 0; i < numCoefficients; ++i)
+//             {
+//                 double classLikelihood = 0.0;
+//                 for (size_t j = 0; j < fftCoefficients[i].size(); ++j)
+//                 {
+//                     double mean = classMeans[c][i];
+//                     double variance = classVariances[c][i];
+//                     double coeffValue = fftCoefficients[i][j];
+//                     double likelihood = -0.5 * std::log(2 * M_PI * variance) - (std::pow(coeffValue - mean, 2) / (2 * variance));
+//                     classLikelihood += likelihood;
+//                 }
+//                 probabilities[c] += classLikelihood;
+//             }
+//         }
+
+//         // Find the class with the highest probability
+//         int predictedClass = 0;
+//         double maxProbability = probabilities[0];
+//         for (int c = 1; c < numClasses; ++c)
+//         {
+//             if (probabilities[c] > maxProbability)
+//             {
+//                 maxProbability = probabilities[c];
+//                 predictedClass = c;
+//             }
+//         }
+
+//         return predictedClass;
+//     }
+// };
